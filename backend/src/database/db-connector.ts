@@ -22,6 +22,7 @@ export const dbConnector = ((): DbConnectionReturnType => {
   const getDb = async (): Promise<mongodb.Db> => {
     if (client) {
       console.log(`db connection is already alive`);
+      return client.db(dbName);
     } else {
       console.log(`getting new db connection`);
       client = await connectDB();
