@@ -1,6 +1,6 @@
 import * as express from 'express';
 import * as cors from 'cors';
-import { tracksRouter } from './tracks/tracks.routes';
+import { tracksRouter } from './routers/tracks.routes';
 
 const lauchApp = async (): Promise<void> => {
   const app: express.Application = express();

@@ -1,4 +1,4 @@
-import { tracksDal } from './tracks.dal';
+import { tracksDal } from '../data-access/tracks.dal';
 import { Readable } from 'stream';
 import { Request, Response } from 'express';
 import * as multer from 'multer';

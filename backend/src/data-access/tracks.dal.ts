@@ -24,7 +24,6 @@ interface TrackDalReturnType {
 
 export const tracksDal = async (): Promise<TrackDalReturnType> => {
   const db: mongodb.Db = await dbConnector.getDb();
-  const db2: mongodb.Db = await dbConnector.getDb();
 
   const getTrackReadStream = (req: Request, res: Response): mongodb.GridFSBucketReadStream => {
     let trackId: mongodb.ObjectID;
