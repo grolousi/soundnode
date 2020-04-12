@@ -1,7 +1,7 @@
 import * as mongodb from 'mongodb';
 import { Request, Response } from 'express';
 import { Readable } from 'stream';
-import { DbConnection } from '../database/db-connector';
+import { dbConnector } from '../database/db-connector';
 const ObjectID = mongodb.ObjectID;
 
 const trackInfosCollectionName = 'trackInfos';
@@ -13,28 +13,20 @@ interface AddTrackInfosReturnType {
 }
 
 interface TrackDalReturnType {
-  getTrackReadStream: (
-    req: Request,
-    res: Response
-  ) => mongodb.GridFSBucketReadStream;
+  getTrackReadStream: (req: Request, res: Response) => mongodb.GridFSBucketReadStream;
   uploadTrack: (
     readableTrackStream: Readable,
     req: Request,
     trackName: string
   ) => mongodb.GridFSBucketWriteStream;
-  addTrackInfos: (
-    id,
-    trackName: string
-  ) => Promise<mongodb.InsertOneWriteOpResult<AddTrackInfosReturnType>>;
+  addTrackInfos: (id, trackName: string) => Promise<mongodb.InsertOneWriteOpResult<AddTrackInfosReturnType>>;
 }
 
 export const tracksDal = async (): Promise<TrackDalReturnType> => {
-  const db: mongodb.Db = await DbConnection().getDb();
+  const db: mongodb.Db = await dbConnector.getDb();
+  const db2: mongodb.Db = await dbConnector.getDb();
 
-  const getTrackReadStream = (
-    req: Request,
-    res: Response
-  ): mongodb.GridFSBucketReadStream => {
+  const getTrackReadStream = (req: Request, res: Response): mongodb.GridFSBucketReadStream => {
     let trackId: mongodb.ObjectID;
 
     try {
@@ -74,9 +66,7 @@ export const tracksDal = async (): Promise<TrackDalReturnType> => {
     id,
     trackName: string
   ): Promise<mongodb.InsertOneWriteOpResult<AddTrackInfosReturnType>> => {
-    return db
-      .collection(trackInfosCollectionName)
-      .insertOne({ trackId: id, trackName });
+    return db.collection(trackInfosCollectionName).insertOne({ trackId: id, trackName });
   };
 
   return {

@@ -4,33 +4,32 @@ const MongoClient = mongodb.MongoClient;
 const urlDB = 'mongodb://localhost:27017';
 const dbName = 'trackDb';
 
-interface DbConnectionType {
+interface DbConnectionReturnType {
   getDb: () => Promise<mongodb.Db>;
 }
 
-export const DbConnection = (): DbConnectionType => {
-  let db: mongodb.Db = null;
-  const connectDB = async (): Promise<mongodb.Db> => {
+export const dbConnector = ((): DbConnectionReturnType => {
+  let client: mongodb.MongoClient;
+  const connectDB = async (): Promise<mongodb.MongoClient> => {
     try {
-      const client = await MongoClient.connect(urlDB);
-      return client.db(dbName);
+      const client = await MongoClient.connect(urlDB, { useUnifiedTopology: true });
+      return client;
     } catch (err) {
       return err;
     }
   };
 
   const getDb = async (): Promise<mongodb.Db> => {
-    if (db !== null) {
+    if (client) {
       console.log(`db connection is already alive`);
-      return db;
     } else {
       console.log(`getting new db connection`);
-      db = await connectDB();
-      return db;
+      client = await connectDB();
+      return client.db(dbName);
     }
   };
 
   return {
     getDb
   };
-};
+})();
