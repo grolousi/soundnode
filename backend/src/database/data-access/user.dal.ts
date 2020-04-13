@@ -1,5 +1,5 @@
 import { dbConnector } from '../db-connector';
-import { UserType } from '../../types/user.types';
+import { UserType } from '../../shared/types/user.types';
 import { InsertOneWriteOpResult, Db } from 'mongodb';
 
 const usersCollection = 'users';

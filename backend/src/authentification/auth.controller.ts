@@ -3,7 +3,7 @@ import { hash } from 'bcrypt';
 import { authService } from './auth.service';
 import { Request, Response } from 'express';
 import { createToken, validatePassword } from './utils/jwt';
-import { UserType } from '../types/user.types';
+import { UserType } from '../shared/types/user.types';
 import { errorLogger } from '../logger';
 
 interface AuthControllerReturnType {

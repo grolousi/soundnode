@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
 import { dbConnector } from '../db-connector';
-import { AddTrackInfosReturnType } from '../../types/tracks.types';
+import { AddTrackInfosReturnType } from '../../shared/types/tracks.types';
 import {
   GridFSBucketWriteStream,
   GridFSBucketReadStream,

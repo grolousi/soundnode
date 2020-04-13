@@ -1,6 +1,6 @@
 import { GridFSBucketReadStream, GridFSBucketWriteStream, InsertOneWriteOpResult, ObjectID } from 'mongodb';
 import { Readable } from 'stream';
-import { AddTrackInfosReturnType } from '../types/tracks.types';
+import { AddTrackInfosReturnType } from '../shared/types/tracks.types';
 import { tracksDal } from '../database/data-access/tracks.dal';
 
 interface TracksServiceReturnType {

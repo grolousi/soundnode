@@ -1,5 +1,5 @@
 import { userDal } from '../database/data-access/user.dal';
-import { UserType } from '../types/user.types';
+import { UserType } from '../shared/types/user.types';
 import { InsertOneWriteOpResult } from 'mongodb';
 
 interface AuthServiceReturnType {
