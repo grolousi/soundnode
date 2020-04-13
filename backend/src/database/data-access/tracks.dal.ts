@@ -10,7 +10,7 @@ import {
   GridFSBucket
 } from 'mongodb';
 
-const trackInfosCollectionName = 'trackInfos';
+const collection = 'trackInfos';
 
 interface TrackDalReturnType {
   getTrackReadStream: (trackId: ObjectID) => GridFSBucketReadStream;
@@ -54,7 +54,7 @@ export const tracksDal = async (): Promise<TrackDalReturnType> => {
   };
 
   const addTrackInfos = (id, trackName: string): Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>> => {
-    return db.collection(trackInfosCollectionName).insertOne({ trackId: id, trackName });
+    return db.collection(collection).insertOne({ trackId: id, trackName });
   };
 
   return {

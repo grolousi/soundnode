@@ -4,6 +4,7 @@ import * as multer from 'multer';
 import { ObjectID } from 'mongodb';
 import { tracksService } from './tracks.service';
 import { errorLogger } from '../logger';
+import { decodeToken } from '../authentification/utils/jwt';
 
 interface TracksControllerReturnType {
   getTrack: (req: Request, res: Response) => Promise<Response>;
@@ -65,10 +66,18 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
             res.status(500).json({ message: 'Error uploading file' });
           });
           uploadStream.on('finish', async () => {
-            await service.addTrackInfos(id, trackName);
-            res.status(201).json({
-              message: 'File uploaded successfully, stored under Mongo ObjectID: ' + id
-            });
+            try {
+              const userId = decodeToken(req.headers.authorization.split(' ')[1]).userId;
+              console.log('userID', userId);
+              const result = await service.addTrackInfos(id, trackName);
+              await service.addTrackToArtist(new ObjectID(userId), result.insertedId);
+
+              res.status(201).json({
+                message: 'File uploaded successfully, stored under Mongo ObjectID: ' + id
+              });
+            } catch (error) {
+              errorLogger('tracks.controller : ' + error);
+            }
           });
         });
       } catch (error) {

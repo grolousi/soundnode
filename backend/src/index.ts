@@ -4,6 +4,7 @@ import * as helmet from 'helmet';
 import { tracksRouter } from './tracks/tracks.routes';
 import { authRouter } from './authentification/auth.routes';
 import { infoLogger } from './logger';
+import { validateToken } from './middlewares/token.validator';
 
 const lauchApp = async (): Promise<void> => {
   const app: express.Application = express();
@@ -15,7 +16,7 @@ const lauchApp = async (): Promise<void> => {
     })
   );
   app.use(helmet());
-  app.use((req: express.Request, res: express.Response, done: express.NextFunction) => {
+  app.use((req: express.Request, _, done: express.NextFunction) => {
     infoLogger(`${req.method.toUpperCase()} : ${req.originalUrl}`);
     done();
   });
@@ -23,7 +24,7 @@ const lauchApp = async (): Promise<void> => {
 
   app.use('/auth', await authRouter());
 
-  app.use('/tracks', await tracksRouter());
+  app.use('/tracks', validateToken, await tracksRouter());
 
   app.listen(3005, () => {
     infoLogger('App listening on port 3005!');

@@ -20,11 +20,19 @@ export const authController = async (): Promise<AuthControllerReturnType> => {
   return {
     register: async (req: Request, res: Response): Promise<Response> => {
       try {
-        const existingUser = await service.getUserByEmail(req.body.email);
-        if (existingUser) {
-          const boomed = badRequest('email used');
+        const existingUserByEmail = await service.getUserByEmail(req.body.email);
+
+        if (existingUserByEmail) {
+          const boomed = badRequest('email already used');
           return res.status(boomed.output.statusCode).json(boomed.output.payload);
         }
+        const existingUserByName = await service.getUserByUserName(req.body.userName);
+
+        if (existingUserByName) {
+          const boomed = badRequest('name alreay used');
+          return res.status(boomed.output.statusCode).json(boomed.output.payload);
+        }
+
         const user = req.body;
         const passwordHash = await hash(user.password, 12);
         const response = await service.createUser({ ...user, password: passwordHash });
