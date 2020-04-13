@@ -1,7 +1,9 @@
 import * as express from 'express';
 import * as cors from 'cors';
-import { tracksRouter } from './routers/tracks.routes';
-import { authRouter } from './routers/auth.routes';
+import * as helmet from 'helmet';
+import { tracksRouter } from './tracks/tracks.routes';
+import { authRouter } from './authentification/auth.routes';
+import { infoLogger } from './logger';
 
 const lauchApp = async (): Promise<void> => {
   const app: express.Application = express();
@@ -12,6 +14,11 @@ const lauchApp = async (): Promise<void> => {
       exposedHeaders: ['Authorization']
     })
   );
+  app.use(helmet());
+  app.use((req: express.Request, res: express.Response, done: express.NextFunction) => {
+    infoLogger(`${req.method.toUpperCase()} : ${req.originalUrl}`);
+    done();
+  });
   app.use(express.json());
 
   app.use('/auth', await authRouter());
@@ -19,7 +26,7 @@ const lauchApp = async (): Promise<void> => {
   app.use('/tracks', await tracksRouter());
 
   app.listen(3005, () => {
-    console.log('App listening on port 3005!');
+    infoLogger('App listening on port 3005!');
   });
 };
 

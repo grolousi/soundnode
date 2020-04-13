@@ -1,11 +1,12 @@
 import * as mongodb from 'mongodb';
+import { errorLogger, infoLogger } from '../logger';
 const MongoClient = mongodb.MongoClient;
 
 const urlDB = 'mongodb://localhost:27017';
 const dbName = 'trackDb';
 
 interface DbConnectionReturnType {
-  getDb: () => Promise<mongodb.Db>;
+  getDb: (dal?: string) => Promise<mongodb.Db>;
 }
 
 export const dbConnector = ((): DbConnectionReturnType => {
@@ -15,16 +16,17 @@ export const dbConnector = ((): DbConnectionReturnType => {
       const client = await MongoClient.connect(urlDB, { useUnifiedTopology: true });
       return client;
     } catch (err) {
+      errorLogger(err);
       return err;
     }
   };
 
-  const getDb = async (): Promise<mongodb.Db> => {
+  const getDb = async (dal = ''): Promise<mongodb.Db> => {
     if (client) {
-      console.log(`db connection is already alive`);
+      infoLogger(`Db connection is already alive ${dal ? dal : ''}`);
       return client.db(dbName);
     } else {
-      console.log(`getting new db connection`);
+      infoLogger(`Getting new db connection ${dal ? dal : ''}`);
       client = await connectDB();
       return client.db(dbName);
     }

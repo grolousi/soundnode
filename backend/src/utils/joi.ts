@@ -1,3 +1,3 @@
-import * as joi from 'joi';
+import { string } from 'joi';
 
-export const joiString = joi.string().trim().max(250);
+export const joiString = string().trim().max(250);

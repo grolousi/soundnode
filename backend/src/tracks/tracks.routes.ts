@@ -1,6 +1,6 @@
 import expressPromiseRouter from 'express-promise-router';
 import { Router } from 'express';
-import { tracksController } from '../controllers/tracks.controller';
+import { tracksController } from './tracks.controller';
 
 export const tracksRouter = async (): Promise<Router> => {
   const router = expressPromiseRouter();
