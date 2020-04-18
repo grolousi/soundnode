@@ -1,17 +1,16 @@
-import * as mongodb from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { errorLogger, infoLogger } from '../logger';
-const MongoClient = mongodb.MongoClient;
-
-const urlDB = 'mongodb://localhost:27017';
-const dbName = 'trackDb';
+require('dotenv').config();
 
 interface DbConnectionReturnType {
-  getDb: (dal?: string) => Promise<mongodb.Db>;
+  getDb: (dal?: string) => Promise<Db>;
 }
 
 export const dbConnector = ((): DbConnectionReturnType => {
-  let client: mongodb.MongoClient;
-  const connectDB = async (): Promise<mongodb.MongoClient> => {
+  let client: MongoClient;
+  const urlDB = `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}`;
+  const dbName = `${process.env.DB_NAME}`;
+  const connectDB = async (): Promise<MongoClient> => {
     try {
       const client = await MongoClient.connect(urlDB, { useUnifiedTopology: true });
       return client;
@@ -21,7 +20,7 @@ export const dbConnector = ((): DbConnectionReturnType => {
     }
   };
 
-  const getDb = async (dal = ''): Promise<mongodb.Db> => {
+  const getDb = async (dal = ''): Promise<Db> => {
     if (client) {
       infoLogger(`Db connection is already alive ${dal ? dal : ''}`);
       return client.db(dbName);

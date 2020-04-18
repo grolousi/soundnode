@@ -1,8 +1,8 @@
-import * as joi from 'joi';
+import { string } from 'joi';
 
-const emailSchema = joi.string().trim().max(200).email().required();
-const passwordSchema = joi.string().trim().min(8).max(50).required();
-const userNameSchema = joi.string().trim().min(3).max(50).required();
+const emailSchema = string().trim().max(200).email().required();
+const passwordSchema = string().trim().min(8).max(50).required();
+const userNameSchema = string().trim().min(3).max(50).required();
 export const loginSchema = {
   email: emailSchema,
   password: passwordSchema

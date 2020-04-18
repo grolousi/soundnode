@@ -4,9 +4,11 @@ import * as helmet from 'helmet';
 import { tracksRouter } from './tracks/tracks.routes';
 import { authRouter } from './authentification/auth.routes';
 import { infoLogger } from './logger';
-import { validateToken } from './middlewares/token.validator';
+import { config } from 'dotenv';
+import { artistsRouter } from './artist/artists.routes';
 
 const lauchApp = async (): Promise<void> => {
+  config();
   const app: express.Application = express();
   app.use(
     cors({
@@ -23,11 +25,12 @@ const lauchApp = async (): Promise<void> => {
   app.use(express.json());
 
   app.use('/auth', await authRouter());
+  app.use('/tracks', await tracksRouter());
+  app.use('/artists', await artistsRouter());
 
-  app.use('/tracks', validateToken, await tracksRouter());
-
-  app.listen(3005, () => {
-    infoLogger('App listening on port 3005!');
+  const port = process.env.SERVER_PORT || 3005;
+  app.listen(port, () => {
+    infoLogger(`App listening on port ${port}!`);
   });
 };
 

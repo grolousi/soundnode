@@ -2,9 +2,11 @@ import { Readable } from 'stream';
 import { Request, Response } from 'express';
 import * as multer from 'multer';
 import { ObjectID } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid';
 import { tracksService } from './tracks.service';
 import { errorLogger } from '../logger';
 import { decodeToken } from '../authentification/utils/jwt';
+import { TrackInfosType } from '../shared/types/tracks.types';
 
 interface TracksControllerReturnType {
   getTrack: (req: Request, res: Response) => Promise<Response>;
@@ -24,6 +26,7 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
         try {
           trackId = new ObjectID(req.params.trackId);
         } catch (err) {
+          //TODO BOOM
           return res.status(400).json({ message: 'Invalid trackId in URL parameter.' });
         }
         const downloadStream = await service.getTrackReadStream(trackId);
@@ -32,6 +35,7 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
             res.write(chunk);
           })
           .on('error', (err) => {
+            //TODO BOOM
             return res.status(400).json(err);
           })
           .on('end', () => {
@@ -39,6 +43,7 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
           });
       } catch (error) {
         errorLogger(error);
+        //TODO BOOM
         return res.status(500);
       }
     },
@@ -49,39 +54,51 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
 
         const upload = multer({
           storage: storage,
-          limits: { fields: 1, fileSize: 6000000, files: 1, parts: 2 }
+          limits: { fields: 2, fileSize: 6000000, files: 1, parts: 3 }
         });
 
         upload.single('track')(req, res, async (err) => {
           if (err) {
+            //TODO BOOM
             return res.status(400).json({ message: 'Upload Request Validation Failed' });
-          } else if (!req.body.name) {
+          } else if (!req.body.title) {
+            //TODO BOOM
             return res.status(400).json({ message: 'No track name in request body' });
           }
-          const trackName: string = req.body.name;
 
-          const uploadStream = await service.uploadTrack(readableTrackStream, req.file, trackName);
+          const uploadStream = await service.uploadTrack(readableTrackStream, req.file, req.body.title);
           const id = uploadStream.id;
+          const trackInfos: TrackInfosType = {
+            trackId: id,
+            title: req.body.title,
+            description: req.body.description,
+            likes: 0,
+            comments: []
+          };
           uploadStream.on('error', () => {
+            //TODO BOOM
             res.status(500).json({ message: 'Error uploading file' });
           });
           uploadStream.on('finish', async () => {
             try {
               const userId = decodeToken(req.headers.authorization.split(' ')[1]).userId;
-              console.log('userID', userId);
-              const result = await service.addTrackInfos(id, trackName);
+              const result = await service.addTrackInfos(id, trackInfos);
               await service.addTrackToArtist(new ObjectID(userId), result.insertedId);
 
               res.status(201).json({
+                //TODO STRING
                 message: 'File uploaded successfully, stored under Mongo ObjectID: ' + id
               });
             } catch (error) {
               errorLogger('tracks.controller : ' + error);
+              //TODO BOOM
+              res.status(500);
             }
           });
         });
       } catch (error) {
         errorLogger(error);
+        //TODO BOOM
         return res.status(500);
       }
     }

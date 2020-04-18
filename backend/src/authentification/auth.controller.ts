@@ -38,7 +38,7 @@ export const authController = async (): Promise<AuthControllerReturnType> => {
         const response = await service.createUser({ ...user, password: passwordHash });
 
         return res
-          .append('Authorization', `Bearer ${createToken(response.insertedId)}`)
+          .append('Authorization', `Bearer ${createToken(response)}`)
           .status(201)
           .json(userPresenter(user));
       } catch (error) {
@@ -51,7 +51,7 @@ export const authController = async (): Promise<AuthControllerReturnType> => {
         const user = await service.getUserByEmail(req.body.email);
         if (user && (await validatePassword(req.body.password, user.password))) {
           return res
-            .append('Authorization', `Bearer ${createToken(user._id)}`)
+            .append('Authorization', `Bearer ${createToken({ userId: user._id, artistId: user.artistId })}`)
             .status(200)
             .json(userPresenter(user));
         }
@@ -59,6 +59,7 @@ export const authController = async (): Promise<AuthControllerReturnType> => {
         return res.status(boomed.output.statusCode).json(boomed.output.payload);
       } catch (error) {
         errorLogger(error);
+        //TODO BOOM
         return res.status(500);
       }
     }

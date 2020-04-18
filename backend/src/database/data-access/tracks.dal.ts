@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
 import { dbConnector } from '../db-connector';
-import { AddTrackInfosReturnType } from '../../shared/types/tracks.types';
+import { AddTrackInfosReturnType, TrackInfosType } from '../../shared/types/tracks.types';
 import {
   GridFSBucketWriteStream,
   GridFSBucketReadStream,
@@ -9,6 +9,7 @@ import {
   ObjectID,
   GridFSBucket
 } from 'mongodb';
+import { errorLogger } from '../../logger';
 
 const collection = 'trackInfos';
 
@@ -17,44 +18,65 @@ interface TrackDalReturnType {
   uploadTrack: (
     readableTrackStream: Readable,
     file: Express.Multer.File,
-    trackName: string
+    title: string
   ) => GridFSBucketWriteStream;
-  addTrackInfos: (id, trackName: string) => Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>>;
+  addTrackInfos: (
+    id,
+    ttrackInfos: TrackInfosType
+  ) => Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>>;
 }
 
 export const tracksDal = async (): Promise<TrackDalReturnType> => {
   const db: Db = await dbConnector.getDb('tracks');
 
   const getTrackReadStream = (trackId: ObjectID): GridFSBucketReadStream => {
-    const bucket = new GridFSBucket(db, {
-      bucketName: 'tracks'
-    });
+    try {
+      const bucket = new GridFSBucket(db, {
+        bucketName: 'tracks'
+      });
 
-    const downloadStream = bucket.openDownloadStream(trackId);
+      const downloadStream = bucket.openDownloadStream(trackId);
 
-    return downloadStream;
+      return downloadStream;
+    } catch (error) {
+      errorLogger(error);
+      throw error;
+    }
   };
 
   const uploadTrack = (
     readableTrackStream: Readable,
     file: Express.Multer.File,
-    trackName: string
+    title: string
   ): GridFSBucketWriteStream => {
-    readableTrackStream.push(file.buffer);
+    try {
+      readableTrackStream.push(file.buffer);
 
-    const bucket = new GridFSBucket(db, {
-      bucketName: 'tracks'
-    });
+      const bucket = new GridFSBucket(db, {
+        bucketName: 'tracks'
+      });
 
-    const uploadStream = bucket.openUploadStream(trackName);
+      const uploadStream = bucket.openUploadStream(title);
 
-    readableTrackStream.pipe(uploadStream);
-    readableTrackStream.push(null);
-    return uploadStream;
+      readableTrackStream.pipe(uploadStream);
+      readableTrackStream.push(null);
+      return uploadStream;
+    } catch (error) {
+      errorLogger(error);
+      throw error;
+    }
   };
 
-  const addTrackInfos = (id, trackName: string): Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>> => {
-    return db.collection(collection).insertOne({ trackId: id, trackName });
+  const addTrackInfos = (
+    id,
+    trackInfos: TrackInfosType
+  ): Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>> => {
+    try {
+      return db.collection(collection).insertOne({ trackId: id, ...trackInfos });
+    } catch (error) {
+      errorLogger(error);
+      throw error;
+    }
   };
 
   return {

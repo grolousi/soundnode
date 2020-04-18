@@ -7,3 +7,8 @@ export interface UserType {
   userName: string;
   password?: string;
 }
+
+export interface CreateUserReturnType {
+  artistId: ObjectID;
+  userId: ObjectID;
+}

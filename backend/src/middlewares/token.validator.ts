@@ -5,8 +5,8 @@ import { errorLogger } from '../logger';
 export const validateToken = [
   (req: Request, res: Response, next: NextFunction): void | Response => {
     try {
-      const id = verifyToken(req.headers['authorization'].split(' ')[1]);
-      console.log(id);
+      verifyToken(req.headers['authorization'].split(' ')[1]);
+
       next();
     } catch (error) {
       errorLogger(error);
