@@ -9,5 +9,5 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"],
-  "rules": { "ban-ts-ignore": false }
+  "rules": { "ban-ts-ignore": false, "quote-props": ["error", "as-needed"] }
 }

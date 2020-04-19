@@ -1,4 +1,5 @@
 import { ObjectID } from 'mongodb';
+import { PopulatedTrackInfosTYpe, AddTrackInfosReturnType } from './tracks.types';
 
 export interface ArtistType {
   _id: ObjectID;
@@ -6,6 +7,8 @@ export interface ArtistType {
   tracks: ObjectID[];
   followers: ObjectID[];
   follows: ObjectID[];
+  likes: ObjectID[];
+  comments: ObjectID[];
 }
 
 export interface ArtistCreationType {
@@ -13,4 +16,25 @@ export interface ArtistCreationType {
   tracks: ObjectID[];
   followers: ObjectID[];
   follows: ObjectID[];
+  likes: ObjectID[];
+  comments: ObjectID[];
+}
+
+export interface PopulatedArtistType {
+  _id: ObjectID;
+  name: string;
+  tracks: AddTrackInfosReturnType[];
+  followers: ObjectID[];
+}
+
+export interface PopulatedArtistTypeWPopulatedTracks {
+  _id: ObjectID;
+  name: string;
+  tracks: PopulatedTrackInfosTYpe[];
+  followers: FollowerReturnType[];
+}
+
+export interface FollowerReturnType {
+  followerId: ObjectID;
+  name: string;
 }

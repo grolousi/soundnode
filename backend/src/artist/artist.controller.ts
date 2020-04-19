@@ -9,6 +9,7 @@ interface ArtistControllerReturnType {
   getArtist: (req: Request, res: Response) => Promise<Response>;
   getAllArtist: (req: Request, res: Response) => Promise<Response>;
   followArtist: (req: Request, res: Response) => Promise<Response>;
+  unFollowArtist: (req: Request, res: Response) => Promise<Response>;
 }
 
 export const artistController = async (): Promise<ArtistControllerReturnType> => {
@@ -18,7 +19,7 @@ export const artistController = async (): Promise<ArtistControllerReturnType> =>
     getArtist: async (req: Request, res: Response): Promise<Response> => {
       try {
         const artistId = req.params.id;
-        const artist = await service.getArtistWithComments(artistId);
+        const artist = await service.getArtistDetails(artistId);
         if (isEmpty(artist)) {
           //TODO BOOM
           return res.status(400).json('No artists found');
@@ -42,10 +43,28 @@ export const artistController = async (): Promise<ArtistControllerReturnType> =>
     },
     followArtist: async (req: Request, res: Response): Promise<Response> => {
       try {
-        const artistId = decodeToken(req.headers.authorization.split(' ')[1]).artistId;
+        const followersId = decodeToken(req.headers.authorization.split(' ')[1]).artistId;
         const { followedId } = req.body;
 
-        const result = await service.followArtist(new ObjectID(artistId), followedId);
+        const result = await service.followArtist(new ObjectID(followersId), followedId);
+        if (!result) {
+          const err = 'error trying to follow someone';
+          errorLogger(err);
+          //TODO BOOM
+          return res.status(500).json(err);
+        }
+        return res.status(200).json(followedId);
+      } catch (error) {
+        errorLogger(error);
+        //TODO BOOM
+        res.status(500);
+      }
+    },
+    unFollowArtist: async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const followersId = decodeToken(req.headers.authorization.split(' ')[1]).artistId;
+        const { followedId } = req.body;
+        const result = await service.unFollowArtist(new ObjectID(followersId), followedId);
         if (!result) {
           const err = 'error trying to follow someone';
           errorLogger(err);

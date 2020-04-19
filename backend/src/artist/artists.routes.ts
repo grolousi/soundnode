@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { artistController } from './artist.controller';
 import { validateParams, idSchema } from '../middlewares/param-validator';
 import { validateBody } from '../middlewares/body.validator';
-import { followSchema } from './artists.schema';
+import { followSchema, unFollowSchema } from './artists.schema';
 import { validateToken } from '../middlewares/token.validator';
 
 export const artistsRouter = async (): Promise<Router> => {
@@ -13,6 +13,7 @@ export const artistsRouter = async (): Promise<Router> => {
   router.get('/:id', validateParams(idSchema), controller.getArtist);
   router.get('/', controller.getAllArtist);
   router.post('/follow', validateToken, validateBody(followSchema), controller.followArtist);
+  router.post('/unfollow', validateToken, validateBody(unFollowSchema), controller.unFollowArtist);
 
   return router;
 };

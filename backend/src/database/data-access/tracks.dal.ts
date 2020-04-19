@@ -24,6 +24,9 @@ interface TrackDalReturnType {
     id,
     ttrackInfos: TrackInfosType
   ) => Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>>;
+  incrementLikes: (trackId: ObjectID) => Promise<boolean>;
+  decrementLikes: (trackId: ObjectID) => Promise<boolean>;
+  addCommentToTrack: (trackId: ObjectID, commentId: ObjectID) => Promise<boolean>;
 }
 
 export const tracksDal = async (): Promise<TrackDalReturnType> => {
@@ -79,9 +82,42 @@ export const tracksDal = async (): Promise<TrackDalReturnType> => {
     }
   };
 
+  const incrementLikes = async (trackId: ObjectID): Promise<boolean> => {
+    try {
+      await db.collection(collection).updateOne({ _id: trackId }, { $inc: { likes: 1 } });
+      return true;
+    } catch (error) {
+      errorLogger('track dal : ' + error);
+      throw error;
+    }
+  };
+
+  const decrementLikes = async (trackId: ObjectID): Promise<boolean> => {
+    try {
+      await db.collection(collection).updateOne({ _id: trackId }, { $inc: { likes: -1 } });
+      return true;
+    } catch (error) {
+      errorLogger('track dal : ' + error);
+      throw error;
+    }
+  };
+
+  const addCommentToTrack = async (trackId: ObjectID, commentId: ObjectID): Promise<boolean> => {
+    try {
+      await db.collection(collection).updateOne({ _id: trackId }, { $addToSet: { comments: commentId } });
+      return true;
+    } catch (error) {
+      errorLogger('track dal : ' + error);
+      throw error;
+    }
+  };
+
   return {
     getTrackReadStream,
     uploadTrack,
-    addTrackInfos
+    addTrackInfos,
+    incrementLikes,
+    decrementLikes,
+    addCommentToTrack
   };
 };

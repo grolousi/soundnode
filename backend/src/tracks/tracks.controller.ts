@@ -2,15 +2,18 @@ import { Readable } from 'stream';
 import { Request, Response } from 'express';
 import * as multer from 'multer';
 import { ObjectID } from 'mongodb';
-import { v4 as uuidv4 } from 'uuid';
 import { tracksService } from './tracks.service';
 import { errorLogger } from '../logger';
 import { decodeToken } from '../authentification/utils/jwt';
 import { TrackInfosType } from '../shared/types/tracks.types';
+import { badRequest, internal } from 'boom';
 
 interface TracksControllerReturnType {
   getTrack: (req: Request, res: Response) => Promise<Response>;
   uploadTrack: (req, Request, res: Response) => Response;
+  likeTrack: (req, Request, res: Response) => Promise<Response>;
+  unlikeTrack: (req, Request, res: Response) => Promise<Response>;
+  addCommentToTrack: (req, Request, res: Response) => Promise<Response>;
 }
 
 export const tracksController = async (): Promise<TracksControllerReturnType> => {
@@ -96,6 +99,61 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
             }
           });
         });
+      } catch (error) {
+        errorLogger(error);
+        //TODO BOOM
+        return res.status(500);
+      }
+    },
+    likeTrack: async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { trackId } = req.body;
+        const result = await service.likeTrack(new ObjectID(artistId), new ObjectID(trackId));
+        if (!result.status) {
+          const boomed = badRequest(result.message);
+          errorLogger(boomed.output.payload.message);
+          return res.status(boomed.output.statusCode).json(boomed.output.payload);
+        }
+        return res.status(200).json(trackId);
+      } catch (error) {
+        errorLogger(error);
+        //TODO BOOM
+        return res.status(500);
+      }
+    },
+    unlikeTrack: async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { trackId } = req.body;
+        const result = await service.unlikeTrack(new ObjectID(artistId), new ObjectID(trackId));
+        if (!result.status) {
+          const boomed = badRequest(result.message);
+          errorLogger(boomed.output.payload.message);
+          return res.status(boomed.output.statusCode).json(boomed.output.payload);
+        }
+        return res.status(200).json(trackId);
+      } catch (error) {
+        errorLogger(error);
+        //TODO BOOM
+        return res.status(500);
+      }
+    },
+    addCommentToTrack: async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { trackId, comment } = req.body;
+        const result = await service.addCommentToTrack(
+          new ObjectID(artistId),
+          comment,
+          new ObjectID(trackId)
+        );
+        if (!result) {
+          const boomed = internal();
+          errorLogger(boomed.output.payload.message);
+          return res.status(boomed.output.statusCode).json(boomed.output.payload);
+        }
+        return res.status(200).json(trackId);
       } catch (error) {
         errorLogger(error);
         //TODO BOOM

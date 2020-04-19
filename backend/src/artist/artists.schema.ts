@@ -9,3 +9,7 @@ export const editArtistSchema = {
 export const followSchema = {
   followedId: any().required()
 };
+
+export const unFollowSchema = {
+  followedId: any().required()
+};

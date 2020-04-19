@@ -1,4 +1,5 @@
 import { ObjectID } from 'mongodb';
+import { PopulatedCommentType } from './comment.types';
 
 export interface AddTrackInfosReturnType {
   _id: ObjectID;
@@ -17,4 +18,14 @@ export interface TrackInfosType {
   image?: string;
   likes?: number;
   comments?: ObjectID[];
+}
+
+export interface PopulatedTrackInfosTYpe {
+  _id: ObjectID;
+  trackId;
+  title: string;
+  description?: string;
+  image?: string;
+  likes?: number;
+  comments?: PopulatedCommentType[];
 }
