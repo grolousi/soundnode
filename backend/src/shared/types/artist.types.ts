@@ -38,3 +38,8 @@ export interface FollowerReturnType {
   followerId: ObjectID;
   name: string;
 }
+
+export interface ArtistUpdateType {
+  name?: string;
+  description?: string;
+}

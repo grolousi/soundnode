@@ -1,12 +1,18 @@
 import { dbConnector } from '../db-connector';
 import { InsertOneWriteOpResult, Db, ObjectID, UpdateWriteOpResult, ObjectId } from 'mongodb';
-import { ArtistType, ArtistCreationType, PopulatedArtistType } from '../../shared/types/artist.types';
+import {
+  ArtistType,
+  ArtistCreationType,
+  PopulatedArtistType,
+  ArtistUpdateType
+} from '../../shared/types/artist.types';
 import { errorLogger } from '../../logger';
 
 const collection = 'artists';
 
 interface ArtistDalReturnType {
   createArtist: (name: string) => Promise<InsertOneWriteOpResult<ArtistType>>;
+  editArtist: (artitstId: ObjectID, body: ArtistUpdateType) => Promise<UpdateWriteOpResult>;
   addTrackInfosToArtist: (trackInfosId: ObjectID, artistId: ObjectID) => Promise<UpdateWriteOpResult>;
   getArtist: (artistId: ObjectID) => Promise<ArtistType>;
   getArtistName: (artistId: ObjectID) => Promise<string>;
@@ -33,6 +39,15 @@ export const artistDal = async (): Promise<ArtistDalReturnType> => {
     };
     try {
       return db.collection(collection).insertOne(artists);
+    } catch (error) {
+      errorLogger(error);
+      throw error;
+    }
+  };
+
+  const editArtist = async (artitstId: ObjectID, body: ArtistUpdateType): Promise<UpdateWriteOpResult> => {
+    try {
+      return db.collection(collection).updateOne({ _id: artitstId }, { $set: { ...body } });
     } catch (error) {
       errorLogger(error);
       throw error;
@@ -159,6 +174,7 @@ export const artistDal = async (): Promise<ArtistDalReturnType> => {
 
   return {
     createArtist,
+    editArtist,
     addTrackInfosToArtist,
     getArtist,
     getArtistName,

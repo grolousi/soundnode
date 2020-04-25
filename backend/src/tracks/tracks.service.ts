@@ -6,7 +6,7 @@ import {
   UpdateWriteOpResult
 } from 'mongodb';
 import { Readable } from 'stream';
-import { AddTrackInfosReturnType, TrackInfosType } from '../shared/types/tracks.types';
+import { AddTrackInfosReturnType, TrackInfosType, UpdateTrackInfoType } from '../shared/types/tracks.types';
 import { tracksDal } from '../database/data-access/tracks.dal';
 import { userDal } from '../database/data-access/user.dal';
 import { artistDal } from '../database/data-access/artist.dal';
@@ -20,6 +20,12 @@ interface TracksServiceReturnType {
     req: Express.Multer.File,
     title: string
   ) => GridFSBucketWriteStream;
+  deleteTrack: (
+    readableTrackStream: Readable,
+    trackInfoId: ObjectID,
+    artistId: ObjectID
+  ) => Promise<{ status: boolean; message: string }>;
+  editTrackInfos: (trackInfoId: ObjectID, updatedInfo: UpdateTrackInfoType) => Promise<UpdateWriteOpResult>;
   addTrackInfos: (id, trackInfos: TrackInfosType) => Promise<InsertOneWriteOpResult<AddTrackInfosReturnType>>;
   addTrackToArtist: (userId: ObjectID, trackInfosId: ObjectID) => Promise<UpdateWriteOpResult>;
   likeTrack: (artistId: ObjectID, trackInfosId: ObjectID) => Promise<{ status: boolean; message: string }>;
@@ -35,6 +41,23 @@ export const tracksService = async (): Promise<TracksServiceReturnType> => {
   return {
     getTrackReadStream: tDal.getTrackReadStream,
     uploadTrack: tDal.uploadTrack,
+    deleteTrack: async (
+      readableTrackStream: Readable,
+      trackInfosId: ObjectID,
+      artistId: ObjectID
+    ): Promise<{ status: boolean; message: string }> => {
+      try {
+        const artist = await aDal.getArtist(artistId);
+        if (!artist.tracks?.some((t: ObjectID) => t.equals(trackInfosId))) {
+          return { status: false, message: 'Can only edit your own track' };
+        }
+        return tDal.deleteTrack(readableTrackStream, trackInfosId);
+      } catch (error) {
+        errorLogger('track.service' + error);
+        throw error;
+      }
+    },
+    editTrackInfos: tDal.editTrackInfos,
     addTrackInfos: tDal.addTrackInfos,
     addTrackToArtist: async (userId: ObjectID, trackInfosId: ObjectID): Promise<UpdateWriteOpResult> => {
       try {

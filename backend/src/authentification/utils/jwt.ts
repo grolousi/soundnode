@@ -10,7 +10,7 @@ export const createToken = (tokenArg: CreateUserReturnType): string => {
 };
 
 export const verifyToken = (token: string): string | object => {
-  return verify(token, tokenSecret, { ignoreExpiration: true });
+  return verify(token, tokenSecret);
 };
 
 export const decodeToken = (token: string): { artistId: string; userId: string } => {

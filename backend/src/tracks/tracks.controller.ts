@@ -4,22 +4,37 @@ import * as multer from 'multer';
 import { ObjectID } from 'mongodb';
 import { tracksService } from './tracks.service';
 import { errorLogger } from '../logger';
-import { decodeToken } from '../authentification/utils/jwt';
 import { TrackInfosType } from '../shared/types/tracks.types';
 import { badRequest, internal } from 'boom';
+import { CustomRequest } from '../middlewares/token.decoder';
 
 interface TracksControllerReturnType {
+  editTrack: (req: CustomRequest, res: Response) => Promise<Response>;
   getTrack: (req: Request, res: Response) => Promise<Response>;
-  uploadTrack: (req, Request, res: Response) => Response;
-  likeTrack: (req, Request, res: Response) => Promise<Response>;
-  unlikeTrack: (req, Request, res: Response) => Promise<Response>;
-  addCommentToTrack: (req, Request, res: Response) => Promise<Response>;
+  uploadTrack: (req: Request, res: Response) => Response;
+  deleteTrack: (req: CustomRequest, res: Response) => Promise<Response>;
+  likeTrack: (req: Request, res: Response) => Promise<Response>;
+  unlikeTrack: (req: Request, res: Response) => Promise<Response>;
+  addCommentToTrack: (req: Request, res: Response) => Promise<Response>;
 }
 
 export const tracksController = async (): Promise<TracksControllerReturnType> => {
   const service = await tracksService();
 
   return {
+    editTrack: async (req: CustomRequest, res: Response): Promise<Response> => {
+      try {
+        //TODO CHECK IF IT OWN TRACK
+        //const { artistId } = req.ctx;
+
+        const trackInfosId = req.params.id;
+        await service.editTrackInfos(new ObjectID(trackInfosId), req.body);
+        return res.status(200).json(trackInfosId);
+      } catch (error) {
+        //TODO BOOM
+        return res.status(500);
+      }
+    },
     getTrack: async (req: Request, res: Response): Promise<Response> => {
       try {
         res.set('content-type', 'audio/mp3');
@@ -84,7 +99,7 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
           });
           uploadStream.on('finish', async () => {
             try {
-              const userId = decodeToken(req.headers.authorization.split(' ')[1]).userId;
+              const userId = (req as CustomRequest).ctx.userId;
               const result = await service.addTrackInfos(id, trackInfos);
               await service.addTrackToArtist(new ObjectID(userId), result.insertedId);
 
@@ -105,9 +120,27 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
         return res.status(500);
       }
     },
-    likeTrack: async (req: Request, res: Response): Promise<Response> => {
+    deleteTrack: async (req: CustomRequest, res: Response): Promise<Response> => {
       try {
-        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { artistId } = req.ctx;
+        const trackId = req.params.id;
+        const readableTrackStream = new Readable();
+        const result = await service.deleteTrack(readableTrackStream,new ObjectID(trackId), new ObjectID(artistId));
+        if (!result.status) {
+          const boomed = badRequest(result.message);
+          errorLogger(boomed.output.payload.message);
+          return res.status(boomed.output.statusCode).json(boomed.output.payload);
+        }
+        return res.status(200).json(trackId);
+      } catch (error) {
+        errorLogger(error);
+        //TODO BOOM
+        return res.status(500);
+      }
+    },
+    likeTrack: async (req: CustomRequest, res: Response): Promise<Response> => {
+      try {
+        const { artistId } = req.ctx;
         const { trackId } = req.body;
         const result = await service.likeTrack(new ObjectID(artistId), new ObjectID(trackId));
         if (!result.status) {
@@ -122,9 +155,9 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
         return res.status(500);
       }
     },
-    unlikeTrack: async (req: Request, res: Response): Promise<Response> => {
+    unlikeTrack: async (req: CustomRequest, res: Response): Promise<Response> => {
       try {
-        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { artistId } = req.ctx;
         const { trackId } = req.body;
         const result = await service.unlikeTrack(new ObjectID(artistId), new ObjectID(trackId));
         if (!result.status) {
@@ -139,9 +172,9 @@ export const tracksController = async (): Promise<TracksControllerReturnType> =>
         return res.status(500);
       }
     },
-    addCommentToTrack: async (req: Request, res: Response): Promise<Response> => {
+    addCommentToTrack: async (req: CustomRequest, res: Response): Promise<Response> => {
       try {
-        const { artistId } = decodeToken(req.headers.authorization.split(' ')[1]);
+        const { artistId } = req.ctx;
         const { trackId, comment } = req.body;
         const result = await service.addCommentToTrack(
           new ObjectID(artistId),

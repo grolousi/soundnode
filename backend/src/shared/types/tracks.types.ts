@@ -25,7 +25,13 @@ export interface PopulatedTrackInfosTYpe {
   trackId;
   title: string;
   description?: string;
-  image?: string;
+  cover?: string;
   likes?: number;
   comments?: PopulatedCommentType[];
+}
+
+export interface UpdateTrackInfoType {
+  title?: string;
+  description?: string;
+  cover?: string;
 }

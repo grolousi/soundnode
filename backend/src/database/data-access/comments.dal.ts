@@ -15,7 +15,7 @@ export const commentDal = async (): Promise<TracksControllerReturnType> => {
     artistId: ObjectID
   ): Promise<InsertOneWriteOpResult<AddCommentReturnType>> => {
     try {
-      return await db.collection(collection).insertOne({ text, artistid: artistId });
+      return await db.collection(collection).insertOne({ text, artistId: artistId });
     } catch (error) {
       errorLogger('track dal : ' + error);
       throw error;

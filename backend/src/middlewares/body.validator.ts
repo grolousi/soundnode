@@ -5,9 +5,8 @@ import { ObjectID } from 'mongodb';
 
 export const validateBody = (schema) => {
   return (req: Request, res: Response, next): Response => {
-    const result = validate(req.body, schema, {
-      stripUnknown: { objects: true }
-    });
+    const result = validate(req.body, schema);
+
     if (result.error) {
       const boomed = badRequest(result.error.message);
       return res.status(boomed.output.statusCode).json(boomed.output.payload);
@@ -20,8 +19,7 @@ export const validateBody = (schema) => {
         //TODO BOOM
         return res.status(400).json({ message: 'Invalid trackId in body.' });
       }
-    } else {
-      next();
     }
+    next();
   };
 };

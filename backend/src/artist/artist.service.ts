@@ -1,12 +1,17 @@
 import { artistDal } from '../database/data-access/artist.dal';
-import { ArtistType, PopulatedArtistTypeWPopulatedTracks } from '../shared/types/artist.types';
-import { ObjectID } from 'mongodb';
+import {
+  ArtistType,
+  PopulatedArtistTypeWPopulatedTracks,
+  ArtistUpdateType
+} from '../shared/types/artist.types';
+import { ObjectID, UpdateWriteOpResult } from 'mongodb';
 import { errorLogger } from '../logger';
 import { AddTrackInfosReturnType } from '../shared/types/tracks.types';
 import { commentDal } from '../database/data-access/comments.dal';
 
 interface ArtistServiceReturnType {
-  getArtistDetails: (artistId: string) => Promise<PopulatedArtistTypeWPopulatedTracks>;
+  editArtist: (artitstId: ObjectID, body: ArtistUpdateType) => Promise<UpdateWriteOpResult>;
+  getArtistDetails: (artistId: ObjectID) => Promise<PopulatedArtistTypeWPopulatedTracks>;
   getAllArtists: () => Promise<ArtistType[]>;
   followArtist: (followerId: ObjectID, followedId: string) => Promise<boolean>;
   unFollowArtist: (followerId: ObjectID, followedId: string) => Promise<boolean>;
@@ -17,10 +22,10 @@ export const artistService = async (): Promise<ArtistServiceReturnType> => {
   const cDal = await commentDal();
 
   return {
-    getArtistDetails: async (artistId: string): Promise<PopulatedArtistTypeWPopulatedTracks> => {
-      const artistObjId = new ObjectID(artistId);
+    editArtist: aDal.editArtist,
+    getArtistDetails: async (artistId: ObjectID): Promise<PopulatedArtistTypeWPopulatedTracks> => {
       try {
-        const artist = await aDal.getArtistWithComments(artistObjId);
+        const artist = await aDal.getArtistWithComments(artistId);
         const result = {
           ...artist[0],
           tracks: await Promise.all(
@@ -37,11 +42,13 @@ export const artistService = async (): Promise<ArtistServiceReturnType> => {
               };
             })
           ),
-          followers: await Promise.all(
-            artist[0].followers.map(async (follower: ObjectID) => {
-              return { followerId: follower, name: await aDal.getArtistName(follower) };
-            })
-          )
+          followers: artist[0].followers
+            ? await Promise.all(
+                artist[0].followers.map(async (follower: ObjectID) => {
+                  return { followerId: follower, name: await aDal.getArtistName(follower) };
+                })
+              )
+            : []
         };
 
         return result;
