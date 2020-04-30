@@ -36,11 +36,12 @@ export const authController = async (): Promise<AuthControllerReturnType> => {
         const user = req.body;
         const passwordHash = await hash(user.password, 12);
         const response = await service.createUser({ ...user, password: passwordHash });
+        const fullUser = await service.getUserByEmail(req.body.email);
 
         return res
           .append('Authorization', `Bearer ${createToken(response)}`)
           .status(201)
-          .json(userPresenter(user));
+          .json(userPresenter(fullUser));
       } catch (error) {
         errorLogger(error);
         return res.status(500);
